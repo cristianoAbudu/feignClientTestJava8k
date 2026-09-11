@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Technical Test — Java Developer</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 40px;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #1f2937; background: #f3f6fa;
+    line-height: 1.5;
+  }
+  .page {
+    max-width: 900px; margin: auto; background: white;
+    padding: 42px 50px; box-shadow: 0 4px 18px rgba(0,0,0,.08);
+  }
+  header {
+    border-bottom: 3px solid #1d4ed8;
+    padding-bottom: 22px; margin-bottom: 28px;
+  }
+  h1 { margin: 0; color: #123b7a; font-size: 30px; }
+  .subtitle { font-size: 18px; color: #4b5563; margin-top: 5px; }
+  .meta {
+    display: flex; gap: 28px; margin-top: 16px;
+    font-size: 14px;
+  }
+  .meta span { border-bottom: 1px solid #9ca3af; min-width: 190px; padding-bottom: 4px; }
+  h2 {
+    color: #123b7a; font-size: 20px;
+    margin: 28px 0 10px;
+    border-left: 4px solid #2563eb; padding-left: 10px;
+  }
+  h3 { color: #1e40af; margin-bottom: 6px; }
+  ul { padding-left: 22px; }
+  li { margin: 5px 0; }
+  .box {
+    background: #eff6ff; border: 1px solid #bfdbfe;
+    border-radius: 8px; padding: 16px 18px; margin: 12px 0;
+  }
+  pre {
+    background: #111827; color: #e5e7eb;
+    padding: 15px; border-radius: 7px;
+    overflow-x: auto; font-size: 13px;
+  }
+  code { font-family: Consolas, monospace; }
+  .flow {
+    text-align: center; font-weight: bold;
+    background: #f8fafc; padding: 14px;
+    border-radius: 8px; margin: 15px 0;
+  }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th, td { border: 1px solid #d1d5db; padding: 9px; text-align: left; }
+  th { background: #eaf2ff; color: #123b7a; }
+  .footer {
+    margin-top: 35px; padding-top: 15px;
+    border-top: 1px solid #d1d5db;
+    font-size: 12px; color: #6b7280;
+  }
+  @media print {
+    body { background: white; padding: 0; }
+    .page { box-shadow: none; max-width: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+  <h1>TECHNICAL TEST — JAVA DEVELOPER</h1>
+  <div class="subtitle">Java Pleno | Spring Boot | Microservices | Feign Client</div>
+  <div class="meta">
+    <span>Candidate: ____________________</span>
+    <span>Date: ____________________</span>
+    <span>Time: 30 minutes</span>
+  </div>
+</header>
+
+<h2>Business Scenario</h2>
+<p>
+You work for a fictional digital bank. The platform has two independent
+microservices: <strong>Customer Service</strong>, responsible for customer
+information, and <strong>Account Service</strong>, responsible for bank accounts.
+</p>
+<p>
+The Account Service needs customer information and must obtain it by calling
+the Customer Service through <strong>Spring Cloud OpenFeign</strong>.
+</p>
+
+<h2>Technical Requirements</h2>
+<ul>
+  <li>Java 17+</li>
+  <li>Spring Boot</li>
+  <li>Spring Web</li>
+  <li>Spring Cloud OpenFeign</li>
+  <li>Maven</li>
+  <li>No database is required — use in-memory data</li>
+</ul>
+
+<h2>1. Customer Service</h2>
+<p>Create an independent Spring Boot application:</p>
+<ul>
+  <li>Port: <strong>8081</strong></li>
+  <li>Endpoint: <code>GET /customers/{id}</code></li>
+  <li>Create 2–3 customers in memory.</li>
+  <li>Return HTTP 404 when the customer does not exist.</li>
+</ul>
+
+<p>Example response:</p>
+<pre>{
+  "id": 1,
+  "name": "John Smith",
+  "email": "john.smith@email.com"
+}</pre>
+
+<h2>2. Account Service</h2>
+<p>Create a second independent Spring Boot application:</p>
+<ul>
+  <li>Port: <strong>8080</strong></li>
+  <li>Endpoint: <code>GET /accounts/{id}</code></li>
+  <li>Keep account data in memory.</li>
+  <li>Each account must contain an <code>id</code>, <code>customerId</code> and <code>balance</code>.</li>
+</ul>
+
+<p>Example internal account:</p>
+<pre>{
+  "id": 100,
+  "customerId": 1,
+  "balance": 1500.50
+}</pre>
+
+<p>The endpoint should return:</p>
+<pre>{
+  "id": 100,
+  "balance": 1500.50,
+  "customer": {
+    "id": 1,
+    "name": "John Smith",
+    "email": "john.smith@email.com"
+  }
+}</pre>
+
+<h2>3. Main Requirement — Feign Client</h2>
+<div class="box">
+  <strong>Account Service MUST call Customer Service using Spring Cloud OpenFeign.</strong>
+  Do not duplicate customer name/email data inside Account Service.
+</div>
+
+<div class="flow">
+  Client → Account Service → Feign Client → Customer Service
+</div>
+
+<p>Example Feign client:</p>
+<pre>@FeignClient(name = "customer-service",
+             url = "${customer-service.url}")
+public interface CustomerClient {
+
+    @GetMapping("/customers/{id}")
+    CustomerResponse findById(@PathVariable Long id);
+}</pre>
+
+<p>Configuration:</p>
+<pre>customer-service.url=http://localhost:8081</pre>
+
+<h2>Acceptance Criteria</h2>
+<ul>
+  <li>Both applications start independently.</li>
+  <li>Customer Service exposes <code>GET /customers/{id}</code>.</li>
+  <li>Account Service exposes <code>GET /accounts/{id}</code>.</li>
+  <li>Account Service uses OpenFeign to call Customer Service.</li>
+  <li>The final response combines account and customer information.</li>
+  <li>Unknown customers are handled with an appropriate HTTP error.</li>
+  <li>Both projects build successfully with Maven.</li>
+</ul>
+
+<h2>Bonus Questions</h2>
+<ol>
+  <li>What happens if Customer Service is unavailable?</li>
+  <li>How would you configure connection/read timeouts for Feign?</li>
+  <li>How would you implement retry safely?</li>
+  <li>How would service discovery work in Kubernetes instead of a hard-coded URL?</li>
+  <li>What is the difference between Feign and WebClient?</li>
+</ol>
+
+<h2>Evaluation Rubric</h2>
+<table>
+  <tr><th>Area</th><th>Weight</th></tr>
+  <tr><td>Java &amp; Spring Boot fundamentals</td><td>20%</td></tr>
+  <tr><td>REST API implementation</td><td>20%</td></tr>
+  <tr><td>OpenFeign implementation</td><td>30%</td></tr>
+  <tr><td>Microservice communication</td><td>20%</td></tr>
+  <tr><td>Code organization &amp; error handling</td><td>10%</td></tr>
+</table>
+
+<div class="footer">
+  Fictional technical assessment. No real banking or customer data is required.
+  <br>
+  Interviewer note: For a 30-minute mid-level assessment, prioritize a working
+  end-to-end solution over excessive infrastructure.
+</div>
+</div>
+</body>
+</html>
